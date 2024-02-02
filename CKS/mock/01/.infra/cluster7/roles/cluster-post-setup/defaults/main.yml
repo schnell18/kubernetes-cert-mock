@@ -1,0 +1,4 @@
+---
+# defaults file for prepare
+task_setup_yaml_path: /tmp/task-setup.yaml
+sysdig_apt_key: https://download.sysdig.com/DRAIOS-GPG-KEY.public

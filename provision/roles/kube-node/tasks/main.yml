@@ -1,0 +1,74 @@
+---
+# tasks file for kube-node
+
+- name: Configure node ip
+  lineinfile:
+    path: /etc/default/kubelet
+    state: present
+    create: yes
+    line: KUBELET_EXTRA_ARGS=--cgroup-driver=systemd --node-ip={{ hostvars[inventory_hostname]['ansible_eth1']['ipv4']['address'] }}
+  notify:
+    - Restart kubelet
+
+- meta: flush_handlers
+
+- name: Prepare partitions for additional disks on VirtualBox backend
+  shell: "{{ lookup('template', 'prepare-partitions.sh') }}"
+  args:
+    executable: /bin/bash
+  register: clpp
+  with_items: "{{ disk_additional_disks }}"
+  changed_when: "'Prepared partitions' in clpp.stdout"
+  when: hypervisor != 'libvirt'
+  tags: ['disk', 'partition']
+
+- name: Prepare partitions for additional disks on libvirt backend
+  shell: "{{ lookup('template', 'prepare-partitions.sh') }}"
+  args:
+    executable: /bin/bash
+  register: clpp
+  with_items: "{{ disk_additional_disks_libvirt }}"
+  changed_when: "'Prepared partitions' in clpp.stdout"
+  when: hypervisor == 'libvirt'
+  tags: ['disk', 'partition']
+
+# - name: load meta images if absent
+#   shell: "{{ lookup('template', 'load-k8s-meta-images.sh') }}"
+#   args:
+#     executable: /bin/bash
+#   register: kbgn
+#   changed_when: "'Loaded k8s meta images' in kbgn.stdout"
+
+# test existence of /etc/kubernetes/kubelet.conf to avoid repeated join
+- name: Test if node already joins cluster
+  stat:
+    path: "{{ kube_conf_dir }}/kubelet.conf"
+  register: jstat
+
+- name: Wait until the join-command.sh is available
+  ansible.builtin.wait_for:
+    path: /tmp/kube-node-join-command.sh
+  connection: local
+  when: jstat.stat.exists == False
+
+- name: Copy join-command.sh to remote
+  copy:
+    src: /tmp/kube-node-join-command.sh
+    dest: /tmp/kube-node-join-command.sh
+    owner: root
+    group: root
+    mode: 0750
+
+- name: Join the node to cluster
+  command: sh /tmp/kube-node-join-command.sh
+  when: jstat.stat.exists == False
+
+- name: Harden kubelet config file permission
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: '600'
+  with_items:
+    - /var/lib/kubelet/config.yaml
+    - /lib/systemd/system/kubelet.service

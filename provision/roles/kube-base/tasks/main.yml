@@ -1,0 +1,149 @@
+---
+# tasks file for containerd
+
+- name: Install pre-requisite packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: no
+  vars:
+    packages:
+    - gpg
+    - parted
+
+- name: Remove swapfile from /etc/fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  with_items:
+    - swap
+    - none
+
+- name: Disable swap
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Load pre-requisite kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Config networking parameters
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+    reload: yes
+  loop:
+    - { key: 'net.bridge.bridge-nf-call-iptables', value: '1'}
+    - { key: 'net.ipv4.ip_forward', value: '1'}
+    - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1'}
+
+- name: Add an apt signing key for Docker
+  apt_key:
+    data: "{{ lookup('file', 'docker-apt-key.asc') }}"
+    state: present
+
+- name: Add containerd stable apt repository
+  apt_repository:
+    repo: deb [arch=amd64] {{ docker_apt_mirror }} bookworm stable
+    state: present
+    filename: containerd
+    update_cache: no
+
+- name: Add an apt signing key for Kubernetes
+  apt_key:
+    url: "{{ kubernetes_apt_mirror }}/v{{ kubernetes_version }}/deb/Release.key"
+    state: present
+
+- name: Add apt repository for Kubernetes
+  apt_repository:
+    repo: "deb {{ kubernetes_apt_mirror }}/v{{ kubernetes_version }}/deb/ /"
+    state: present
+    filename: kubernetes
+    update_cache: no
+
+- name: Add an apt signing key for gvisor
+  apt_key:
+    data: "{{ lookup('file', 'gvisor-apt-key.asc') }}"
+    state: present
+  when: enable_gvisor
+
+- name: Add gvisor stable apt repository
+  apt_repository:
+    repo: deb [arch=amd64] {{ gvisor_apt_mirror }} release main
+    state: present
+    filename: gvisor
+    update_cache: no
+  when: enable_gvisor
+
+- name: Add an apt signing key for trivy
+  apt_key:
+    data: "{{ lookup('file', 'trivy-apt-key.asc') }}"
+    state: present
+  when: enable_trivy
+
+- name: Add trivy apt repository
+  apt_repository:
+    repo: deb [arch=amd64] {{ trivy_apt_mirror }} bookworm main
+    state: present
+    filename: trivy
+    update_cache: no
+  when: enable_trivy
+
+# update cache is mandatory for this task
+- name: Install containerd and its dependencies
+  apt:
+    name: "{{ item.name }}"
+    state: present
+    update_cache: yes
+  loop:
+    - {name: 'containerd.io', install: True }
+    - {name: 'runsc', install: "{{ enable_gvisor | bool }}" }
+    - {name: 'trivy', install: "{{ enable_trivy | bool }}" }
+  when: item.install
+  notify:
+    - Restart containerd
+
+- name: Install Kubernetes binaries
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: no
+  vars:
+    packages:
+      - kubelet={{ kubernetes_version }}.{{ kubernetes_patch }}-{{ kubernetes_pkg_rev }}
+      - kubeadm={{ kubernetes_version }}.{{ kubernetes_patch }}-{{ kubernetes_pkg_rev }}
+      - kubectl={{ kubernetes_version }}.{{ kubernetes_patch }}-{{ kubernetes_pkg_rev }}
+
+# - name: Add ubuntu user to containerd group
+#   user:
+#     name: ubuntu
+#     group: containerd
+
+- name: Make sure /etc/containerd exists
+  file:
+    path: /etc/containerd
+    state: directory
+
+- name: Add containerd config file
+  copy:
+    content: "{{ lookup('template', 'config.toml') }}"
+    mode: 0644
+    dest: /etc/containerd/config.toml
+  notify:
+    - Restart containerd
+
+- name: Add crictl config file
+  copy:
+    content: "{{ lookup('template', 'crictl.yaml') }}"
+    mode: 0644
+    dest: /etc/crictl.yaml
+
+
+- meta: flush_handlers

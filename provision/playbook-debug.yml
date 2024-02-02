@@ -1,0 +1,7 @@
+---
+- hosts: all
+  gather_facts: yes
+  tasks:
+    - name: explore ansible_kernel
+      debug:
+        msg: "{{ hostvars[inventory_hostname] }}"

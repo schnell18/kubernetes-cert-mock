@@ -1,0 +1,3 @@
+---
+# defaults file for prepare
+task_setup_yaml_path: /tmp/task-setup.yaml

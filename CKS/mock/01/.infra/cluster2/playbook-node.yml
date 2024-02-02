@@ -1,0 +1,14 @@
+---
+- hosts: slave-*
+  vars:
+    kubernetes_version: "1.28"
+    kubernetes_patch: "5"
+    kubernetes_pkg_rev: "1.1"
+    enable_trivy: false
+    enable_gvisor: false
+  become: true
+  pre_tasks:
+
+  roles:
+    - role: kube-base
+    - role: kube-node

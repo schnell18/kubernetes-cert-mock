@@ -1,0 +1,14 @@
+---
+
+- hosts: master
+  vars:
+    kubernetes_version: "1.28"
+    kubernetes_patch: "5"
+    kubernetes_pkg_rev: "1.1"
+    kubernetes_cluster_name: "cluster1"
+  become: true
+
+  roles:
+    - role: kube-base
+    - role: kube-master
+    - role: local-pv-provisioner

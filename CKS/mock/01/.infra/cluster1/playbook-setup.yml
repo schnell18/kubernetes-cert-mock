@@ -1,0 +1,10 @@
+---
+
+- hosts: master
+  become: true
+  gather_facts: false
+  pre_tasks:
+    - name: Perform cluster post setup...
+      ansible.builtin.meta: noop
+  roles:
+    - role: cluster-post-setup

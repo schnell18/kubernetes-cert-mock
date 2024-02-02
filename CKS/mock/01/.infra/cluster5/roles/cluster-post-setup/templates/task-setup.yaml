@@ -1,0 +1,342 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod
+  labels:
+    name: prod
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stage
+  labels:
+    name: stage
+---
+# prod prod-db
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-db
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-index.html
+  namespace: prod-db
+data:
+  index.html: |+
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>mysql </title>
+    <style>
+    html { color-scheme: light dark; }
+    body { width: 35em; margin: 0 auto;
+    font-family: Tahoma, Verdana, Arial, sans-serif; }
+    </style>
+    </head>
+    <body>
+    <h1>Welcome to mysql </h1>
+    <p>If you see this page, the mysql mock  is working</p>
+
+    </body>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mysql
+  name: mysql
+  namespace: prod-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      volumes:
+      - name: index
+        configMap:
+          name: db-index.html
+      containers:
+      - image: nginx
+        name: nginx
+        volumeMounts:
+          - name: index
+            mountPath: /usr/share/nginx/html/
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: mysql
+  name: mysql
+  namespace: prod-db
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+  selector:
+    app: mysql
+
+---
+#all-pod
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: user-client
+  labels:
+    name: user-client
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: all-pod-db-external
+    role: db-external-connect
+  name: all-pod-db-external
+  namespace: user-client
+spec:
+  containers:
+  - image: docker.io/schnell18/cksretriever:1.0.0-1-alpine
+    command: ['sh', '-c', 'while true ; do  echo "$(date) i am working ";  sleep 10  ;done']
+    name: all-pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: all-pod
+  name: all-pod
+  namespace: user-client
+spec:
+  containers:
+  - image: docker.io/schnell18/cksretriever:1.0.0-1-alpine
+    command: ['sh', '-c', 'while true ; do  echo "$(date) i am working ";  sleep 10  ;done']
+    name: all-pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: all-stage-pod
+  name: all-stage-pod
+  namespace: stage
+spec:
+  containers:
+  - image: docker.io/schnell18/cksretriever:1.0.0-1-alpine
+    command: ['sh', '-c', 'while true ; do  echo "$(date) i am working ";  sleep 10  ;done']
+    name: all-pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: db-connect-stage-pod
+    role: db-connect
+  name: db-connect-stage-pod
+  namespace: stage
+spec:
+  containers:
+  - image: docker.io/schnell18/cksretriever:1.0.0-1-alpine
+    command: ['sh', '-c', 'while true ; do  echo "$(date) i am working ";  sleep 10  ;done']
+    name: all-pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: prod-pod
+  name: prod-pod
+  namespace: prod
+spec:
+  containers:
+  - image: docker.io/schnell18/cksretriever:1.0.0-1-alpine
+    command: ['sh', '-c', 'while true ; do  echo "$(date) i am working ";  sleep 10  ;done']
+    name: all-pod
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-5
+  labels:
+    name: team-5
+---
+apiVersion: v1
+data:
+  password: UGExNjM2d29yRA==
+  user: YWQtYWRtaW4=
+kind: Secret
+metadata:
+  name: db
+  namespace: team-5
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apparmor
+  labels:
+    name: apparmor
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: secure
+  labels:
+    name: secure
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: secure
+  name: secure
+  namespace: secure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secure
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: secure
+    spec:
+      containers:
+      - image: docker.io/schnell18/cksretriever:1.0.0-1-alpine
+        name: c1
+        command: ['sh', '-c', 'while true ; do  echo "$(date) i am working . c1 . $(id)";  sleep 10  ;done']
+        resources: {}
+      - image: docker.io/schnell18/cksretriever:1.0.0-1-alpine
+        name: c2
+        command: ['sh', '-c', 'while true ; do  echo "$(date) i am working . c2 . $(id)";  sleep 10  ;done']
+        resources: {}
+      - image: docker.io/schnell18/cksretriever:1.0.0-1-alpine
+        name: c3
+        command: ['sh', '-c', 'while true ; do  echo "$(date) i am working . c3 . $(id)";  sleep 10  ;done']
+        resources: {}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rbac-1
+  labels:
+    name: rbac-1
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rbac-2
+  labels:
+    name: rbac-2
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dev
+  namespace: rbac-1
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dev
+  namespace: rbac-1
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - create
+  - delete
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev
+  namespace: rbac-1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: dev
+subjects:
+- kind: ServiceAccount
+  name: dev
+  namespace: rbac-1
+---
+apiVersion: v1
+data:
+  aaa: bbb
+kind: ConfigMap
+metadata:
+  name: db-config
+  namespace: rbac-2
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-red
+  labels:
+    name: team-red
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: container-host-hacker
+  name: container-host-hacker
+  namespace: team-red
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: container-host-hacker
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: container-host-hacker
+    spec:
+      volumes:
+        - name: host
+          hostPath:
+            # directory location on host
+            path: /run/containerd
+            # this field is optional
+            type: Directory
+
+      containers:
+      - image: docker.io/schnell18/cksretriever:1.0.0-1-alpine
+        name: busybox
+        command: ['sh', '-c', 'while true ; do  echo "i am working ";  sleep 10  ;done']
+        volumeMounts:
+          - name: host
+            mountPath: "/run/containerd"
+            readOnly: false

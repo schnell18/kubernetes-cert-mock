@@ -1,0 +1,35 @@
+---
+# tasks file for task preparation
+
+- name: Add apt signing key for Sysdig
+  apt_key:
+    url: "{{ sysdig_apt_key }}"
+    state: present
+
+- name: Add apt repository for Sysdig
+  apt_repository:
+    repo: "deb https://download.sysdig.com/stable/deb stable-$(ARCH)/"
+    state: present
+    filename: sysdig
+    update_cache: no
+
+- name: Install Sysdig
+  apt:
+    name: "sysdig"
+    state: present
+    update_cache: yes
+
+- name: Copy task-setup.yaml to remote
+  copy:
+    content: "{{ lookup('template', 'task-setup.yaml') }}"
+    owner: root
+    group: root
+    mode: 0640
+    dest: "{{ task_setup_yaml_path }}"
+
+- name: Perform task setup
+  shell: "{{ lookup('template', 'setup.sh') }}"
+  args:
+    executable: /bin/bash
+  register: kbgn
+  changed_when: "'Setup completed' in kbgn.stdout"

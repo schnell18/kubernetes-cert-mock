@@ -1,0 +1,35 @@
+---
+# defaults file for kube-master
+kube_conf_dir: /etc/kubernetes
+kube_admin_user: vagrant
+kube_admin_group: vagrant
+kube_admin_home_dir: "/home/{{ kube_admin_user }}"
+pod_cidr: 10.10.0.0/16
+# google_apt_mirror: https://apt.bbvk18.cf/
+# google_apt_mirror: https://mirrors.aliyun.com/kubernetes/apt/
+# google_apt_mirror: http://newton:8081/repository/kubernetes/
+# google_apt_mirror_apt_key: https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg
+kubernetes_apt_mirror: "https://pkgs.k8s.io/core:/stable:"
+# on Debian 10 which use iptables 1.8, this should be NFT
+# prior to Debian 10, this should be Legacy
+# With calico 3.12, you may also try `Auto`
+calico_iptables_backend: NFT
+
+admission_plugins:
+  - PersistentVolumeLabel
+  - DefaultTolerationSeconds
+  - NodeRestriction
+
+#  - PodPreset
+
+kubernetes_apiserver_profiling: false
+kubernetes_controller_manager_profiling: false
+kubernetes_scheduler_profiling: false
+enable_kubernetes_audit: false
+kubernetes_audit_conf_dir: "/etc/kubernetes/audit"
+kubernetes_audit_policy_file: "audit-policy.yaml"
+kubernetes_audit_log_dir: "/var/log/k8s"
+kubernetes_audit_log_file: "audit.log"
+kubernetes_audit_log_max_age: 31
+kubernetes_audit_log_max_size: 100
+kubernetes_audit_log_max_backup: 10

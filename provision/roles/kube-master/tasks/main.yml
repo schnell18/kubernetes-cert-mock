@@ -1,0 +1,136 @@
+---
+# tasks file for kube-master
+
+- name: Make sure audit '{{ kubernetes_audit_conf_dir }}' directory exists
+  file:
+    path: "{{ kubernetes_audit_conf_dir }}"
+    owner: root
+    group: root
+    mode: 0750
+    state: directory
+  when: enable_kubernetes_audit
+
+- name: Setup kubernetes audit policy
+  copy:
+    content: "{{ lookup('template', 'audit-policy.yaml') }}"
+    owner: root
+    group: root
+    mode: 0640
+    dest: "{{ kubernetes_audit_conf_dir }}/{{ kubernetes_audit_policy_file }}"
+  when: enable_kubernetes_audit
+
+- name: Configure node ip
+  lineinfile:
+    path: /etc/default/kubelet
+    state: present
+    create: yes
+    line: KUBELET_EXTRA_ARGS=--cgroup-driver=systemd --node-ip={{ hostvars[inventory_hostname]['ansible_eth1']['ipv4']['address'] }}
+  notify:
+    - Restart kubelet
+
+# - name: load meta images if absent
+#   shell: "{{ lookup('template', 'load-k8s-meta-images.sh') }}"
+#   args:
+#     executable: /bin/bash
+#   register: lbgn
+#   changed_when: "'Loaded k8s meta images' in lbgn.stdout"
+
+- name: Test if cluster is already initialized
+  stat:
+    path: "{{ kube_conf_dir }}/admin.conf"
+  register: astat
+  tags: ["kubeadm"]
+
+- name: Initialize the Kubernetes cluster using kubeadm
+  shell: "{{ lookup('template', 'run-kubeadm-init.sh') }}"
+  when: astat.stat.exists == False
+  tags: ["kubeadm"]
+
+- name: "Make sure {{ kube_admin_home_dir }}/.kube exists"
+  file:
+    path: "{{ kube_admin_home_dir }}/.kube"
+    state: directory
+
+- name: Setup kubeconfig for devel user
+  copy:
+    src: /etc/kubernetes/admin.conf
+    remote_src: yes
+    owner: "{{ kube_admin_user }}"
+    group: "{{ kube_admin_group }}"
+    mode: 0640
+    dest: "{{ kube_admin_home_dir }}/.kube/config"
+
+- name: Make sure /root/.kube exists
+  file:
+    path: /root/.kube
+    state: directory
+- name: Setup kubeconfig for root user
+  copy:
+    src: /etc/kubernetes/admin.conf
+    remote_src: yes
+    owner: root
+    group: root
+    mode: 0640
+    dest: /root/.kube/config
+
+- name:  Create etcd client cert secrets for calico
+  shell: "{{ lookup('template', 'create-calico-etcd-secret.sh') }}"
+  args:
+    executable: /bin/bash
+  register: cbgn
+  changed_when: "'Created etcd client cert secrets' in cbgn.stdout"
+
+- name: Copy calico.yaml to remote
+  copy:
+    content: "{{ lookup('template', 'calico.yaml') }}"
+    owner: root
+    group: root
+    mode: 0640
+    dest: /tmp/calico.yaml
+
+- name: Harden kubelet config file permission
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: '600'
+  with_items:
+    - /var/lib/kubelet/config.yaml
+    - /lib/systemd/system/kubelet.service
+
+- name: Install calico pod network
+  shell: "{{ lookup('template', 'create-calico-networking.sh') }}"
+  args:
+    executable: /bin/bash
+  register: kbgn
+  changed_when: "'Created calico networking' in kbgn.stdout"
+
+- name: Generate join command
+  command: kubeadm token create --print-join-command
+  register: join_command
+  changed_when: False
+- name: Copy join command to local file
+  copy:
+    content: "{{ join_command.stdout_lines[0] }}"
+    mode: 0755
+    dest: "/tmp/kube-node-join-command.sh"
+  changed_when: False
+
+- name: Fetch join-command file back
+  fetch:
+    src: "/tmp/kube-node-join-command.sh"
+    dest: "/tmp/kube-node-join-command.sh"
+    flat: True
+  changed_when: False
+
+- name: Fetch kubeconfig file back
+  fetch:
+    src: /root/.kube/config
+    dest: /tmp/kubeconfig
+    flat: True
+  changed_when: False
+
+- name: Print kubeconfig location
+  debug:
+    msg: "You may now copy /tmp/kubeconfig to your home directory and access the k8s cluster w/ kubectl"
+  changed_when: False

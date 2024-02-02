@@ -1,0 +1,7 @@
+---
+# defaults file for local-pv-provisioner
+# namespace: default
+namespace: kube-system
+storage_class_name: local-storage
+discovery_directory: /mnt/disks
+local_pv_provisioner_image: registry.k8s.io/sig-storage/local-volume-provisioner:v2.6.0

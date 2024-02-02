@@ -1,0 +1,19 @@
+---
+
+- hosts: master
+  vars:
+    kubernetes_version: "1.28"
+    kubernetes_patch: "5"
+    kubernetes_pkg_rev: "1.1"
+    enable_falco: false
+    enable_kubernetes_audit: false
+    kubernetes_cluster_name: "cluster3"
+    kubernetes_apiserver_profiling: true
+    kubernetes_controller_manager_profiling: true
+    kubernetes_scheduler_profiling: true
+  become: true
+  roles:
+    - role: kube-base
+    - role: kube-master
+    - role: local-pv-provisioner
+    - role: cluster-post-setup

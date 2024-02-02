@@ -1,0 +1,17 @@
+---
+# tasks file for task preparation
+
+- name: Copy task-setup.yaml to remote
+  copy:
+    content: "{{ lookup('template', 'task-setup.yaml') }}"
+    owner: root
+    group: root
+    mode: 0640
+    dest: "{{ task_setup_yaml_path }}"
+
+- name: Perform task setup
+  shell: "{{ lookup('template', 'setup.sh') }}"
+  args:
+    executable: /bin/bash
+  register: kbgn
+  changed_when: "'Setup completed' in kbgn.stdout"

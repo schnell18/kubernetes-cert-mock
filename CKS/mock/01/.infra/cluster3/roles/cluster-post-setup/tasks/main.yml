@@ -1,0 +1,9 @@
+---
+# tasks file for task preparation
+
+- name: Perform task setup
+  shell: "{{ lookup('template', 'setup.sh') }}"
+  args:
+    executable: /bin/bash
+  register: kbgn
+  changed_when: "'Setup completed!' in kbgn.stdout"

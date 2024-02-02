@@ -1,0 +1,13 @@
+---
+- hosts: slave-*
+  vars:
+    kubernetes_version: "1.28"
+    kubernetes_patch: "5"
+    kubernetes_pkg_rev: "1.1"
+    enable_trivy: true
+    enable_gvisor: true
+  become: true
+
+  roles:
+    - role: containerd
+    - role: kube-node
