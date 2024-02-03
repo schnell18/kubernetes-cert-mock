@@ -147,4 +147,4 @@ or broken connections.
 [10]: https://libvirt.org/
 [11]: https://vagrant-libvirt.github.io/vagrant-libvirt/ 
 [12]: https://kubernetes.io/docs/reference/kubectl/quick-reference/#kubectl-autocomplete 
-[13]: https://github.com/schnell18/kube-cert/CKS/mock/01/README.md
+[13]: https://github.com/schnell18/kubernetes-cert-mock/blob/master/CKS/mock/01/README.md

@@ -30,14 +30,16 @@ Vagrant.configure("2") do |config|
     if ARGV[0] == 'up'
       # vailidate and save mock test env meta info into file
       validate_meta_info()
-    elsif ARGV[0] == 'destroy'
-      # remove mock test env meta info file
-      remove_meta_info()
     end
 
     vagrant_provider = get_provider(ARGV)
     cert_type, mock_set, question, cluster = get_quartet(read_meta_info())
     print_banner(cert_type, mock_set, question, cluster, 66) 
+
+    if ARGV[0] == 'destroy'
+      # remove mock test env meta info file
+      remove_meta_info()
+    end
 
     # set MTU when vm need cross GFW
     config.vm.provision "shell", inline: $script1, run: "always"
@@ -75,6 +77,7 @@ Vagrant.configure("2") do |config|
             node.hostmanager.aliases = "#{node_id}.kube.vn"
     
             node.vm.provider "libvirt" do |v|
+                v.management_network_mtu = MTU
                 # the default pool is full
                 # v.storage_pool_name = "home-pool"
                 v.title = node_id

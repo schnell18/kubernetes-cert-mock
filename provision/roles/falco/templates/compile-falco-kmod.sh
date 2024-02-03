@@ -1,3 +1,4 @@
+# This is required for Debian 10.x Buster
 debian_kernel_version=$(uname -r)
 debian_kernel_arch=$(uname -r | cut -d'-' -f3)
 linux_kernel_version=$(uname -v | cut -d' ' -f4)

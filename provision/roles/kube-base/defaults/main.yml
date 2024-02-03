@@ -2,7 +2,8 @@
 
 enable_gvisor: False 
 enable_trivy: False 
-docker_apt_mirror: https://mirror.sjtu.edu.cn/docker-ce/linux/debian
+# docker_apt_mirror: https://mirror.sjtu.edu.cn/docker-ce/linux/debian
+docker_apt_mirror: https://download.docker.com/linux/debian
 gvisor_apt_mirror: https://storage.googleapis.com/gvisor/releases
 trivy_apt_mirror: https://aquasecurity.github.io/trivy-repo/deb 
 #docker_apt_mirror: https://download.docker.com/linux/debian
