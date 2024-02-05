@@ -259,11 +259,14 @@ def persist_meta_info(cert_type, mock_set, question)
 end
 
 def validate_meta_info()
-  cert_type = ENV['CERTIFICATION_TYPE'] || "CKS"
-  mock_set = ENV['MOCK_SET'] || "01"
+  cert_type = ENV['CERTIFICATION_TYPE']
+  mock_set = ENV['MOCK_SET']
   question = ENV['QUESTION']
   meta_info = File.join(".vagrant", "cert", "meta-info.txt")
   if File.exists?(meta_info)
+    if cert_type == nil and mock_set == nil and question == nil
+      return
+    end
     cert_type_f, mock_set_f, question_f = extract_from_array(read_meta_info())
     if cert_type_f == cert_type and mock_set_f == mock_set
       cluster = get_cluster_by_triple(cert_type, mock_set, question) 
@@ -282,7 +285,7 @@ def validate_meta_info()
     if !question
       abort("You must specify question number as QUESTION=n followed by vagrant up!")
     end
-    persist_meta_info(cert_type, mock_set, question)
+    persist_meta_info(cert_type || 'CKS', mock_set || '01', question)
   end
 end
 
