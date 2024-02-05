@@ -1,0 +1,4 @@
+trivy image nginx:1.19-alpine-perl
+trivy image mariadb:10.8-focal
+trivy image docker.io/library/mysql:8.0.33
+trivy image nginx:1.23-bullseye-perl
