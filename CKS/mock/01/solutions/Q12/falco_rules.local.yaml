@@ -1,0 +1,11 @@
+# Your custom rules!
+
+- rule: nginx container started
+  desc: >
+    Log nginx container activity to /var/work/tests/artifacts/12/log
+  condition: >
+    spawned_process 
+    and container
+    and container.image.repository in (nginx, docker.io/library/nginx)
+  output: A nginx container was spawned (time-with-nanosconds=%evt.time,container-id=%container.id,container-name=%container.name,user-name=%user.name,kubernetes-namespace=%k8s.ns.name,kubernetes-pod-name=%k8s.pod.name)
+  priority: NOTICE
