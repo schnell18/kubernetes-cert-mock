@@ -9,57 +9,7 @@
     kubernetes_cluster_name: "kubernetes"
   become: true
 
-  pre_tasks:
-    - name: Remove swapfile from /etc/fstab
-      mount:
-        name: "{{ item }}"
-        fstype: swap
-        state: absent
-      with_items:
-        - swap
-        - none
-    - name: Disable swap
-      command: swapoff -a
-      when: ansible_swaptotal_mb > 0
-
-    - name: Install pre-requisite packages
-      apt:
-        name: "{{ packages }}"
-        state: present
-        update_cache: no
-      vars:
-        packages:
-        - gpg
-
-    - name: Add pre-requisite kernel modules
-      modprobe:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - overlay
-        - br_netfilter
-    - name: Config networking parameters
-      ansible.posix.sysctl:
-        name: "{{ item.key }}"
-        value: "{{ item.value }}"
-        sysctl_set: yes
-        state: present
-        reload: yes
-      loop:
-        - { key: 'net.bridge.bridge-nf-call-iptables', value: '1'}
-        - { key: 'net.ipv4.ip_forward', value: '1'}
-        - { key: 'net.bridge.bridge-nf-call-ip6tables', value: '1'}
-
-      # loop: "{{ sysctl_map | dict2items }}"
-      # vars:
-      #   sysctl_map:
-      #     net.bridge.bridge-nf-call-iptables : 1
-      #     net.ipv4.ip_forward: 1
-      #     net.bridge.bridge-nf-call-ip6tables: 1
-
   roles:
-    - role: containerd
+    - role: kube-base
     - role: kube-master
     - role: local-pv-provisioner
-    - role: falco
-      when: enable_falco

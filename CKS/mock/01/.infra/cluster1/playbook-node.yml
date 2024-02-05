@@ -9,5 +9,5 @@
   become: true
 
   roles:
-    - role: containerd
+    - role: kube-base
     - role: kube-node
