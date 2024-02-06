@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: apparmor
+  name: apparmor
+  namespace: apparmor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apparmor
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        # Tell Kubernetes to apply the AppArmor profile "k8s-apparmor-example-deny-write".
+        # Note that this is ignored if the Kubernetes node is not running version 1.4 or greater.
+        container.apparmor.security.beta.kubernetes.io/c1: localhost/my-k8s-apparmor
+      labels:
+        app: apparmor
+    spec:
+      nodeSelector:
+        security: apparmor
+      containers:
+      - image: nginx:1.19.2
+        name: c1
+        resources: {}
