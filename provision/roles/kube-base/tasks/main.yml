@@ -96,6 +96,18 @@
     update_cache: no
   when: enable_trivy
 
+- name: Add apt signing key for Sysdig
+  apt_key:
+    url: "{{ sysdig_apt_key }}"
+    state: present
+
+- name: Add apt repository for Sysdig
+  apt_repository:
+    repo: "deb https://download.sysdig.com/stable/deb stable-$(ARCH)/"
+    state: present
+    filename: sysdig
+    update_cache: no
+
 # update cache is mandatory for this task
 - name: Install containerd and its dependencies
   apt:
@@ -106,6 +118,7 @@
     - {name: 'containerd.io', install: True }
     - {name: 'runsc', install: "{{ enable_gvisor | bool }}" }
     - {name: 'trivy', install: "{{ enable_trivy | bool }}" }
+    - {name: 'sysdig', install: "{{ enable_sysdig | bool }}" }
   when: item.install
   notify:
     - Restart containerd

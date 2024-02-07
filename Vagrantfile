@@ -226,6 +226,7 @@ def get_cluster_by_triple(cert_type, mock_set, question)
       16 => { 'cluster' => 1 },
       17 => { 'cluster' => 9 },
       18 => { 'cluster' => 10 },
+      99 => { 'cluster' => 99 },
     }
   }
   if !question_dict.has_key?(mock_set)
