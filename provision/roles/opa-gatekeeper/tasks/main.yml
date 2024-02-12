@@ -1,0 +1,17 @@
+---
+# tasks file for task preparation
+
+- name: Copy gatekeeper.yaml to remote
+  copy:
+    content: "{{ lookup('template', 'gatekeeper.yaml') }}"
+    owner: root
+    group: root
+    mode: 0640
+    dest: "{{ opa_gatekeeper_yaml_path }}"
+
+- name: Install OPA gatekeeper into kubernetes
+  shell: "{{ lookup('template', 'setup.sh') }}"
+  args:
+    executable: /bin/bash
+  register: kbgn
+  changed_when: "'Setup completed' in kbgn.stdout"

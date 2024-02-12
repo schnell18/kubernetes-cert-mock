@@ -1,0 +1,9 @@
+---
+# handlers file for falco
+
+- name: Restart falco
+  ansible.builtin.systemd_service:
+    name: falco-kmod
+    enabled: true
+    daemon_reload: yes
+    state: restarted

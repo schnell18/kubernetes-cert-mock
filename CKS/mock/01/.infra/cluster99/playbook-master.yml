@@ -12,3 +12,4 @@
     - role: kube-base
     - role: kube-master
     - role: local-pv-provisioner
+    - role: opa-gatekeeper
