@@ -13,3 +13,5 @@
     - role: kube-master
     - role: local-pv-provisioner
     - role: opa-gatekeeper
+    - role: etcd-tools
+    - role: kube-dashboard

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: gvisor-test
+  name: gvisor-test
+spec:
+  nodeName: slave-2
+  runtimeClassName: gvisor
+  containers:
+  - image: nginx:1.19.2
+    name: gvisor-test
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always

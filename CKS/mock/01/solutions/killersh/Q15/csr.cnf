@@ -1,0 +1,22 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+C = NZ
+ST = Auckland
+L = Auckland
+O = AUT
+OU = IT
+CN = secure-ingress.kube.vn
+
+[v3_req]
+keyUsage = keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = 192.168.122.11
+DNS.2 = entry.kube.vn
+DNS.3 = api.kube.vn

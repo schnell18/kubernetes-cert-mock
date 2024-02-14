@@ -1,7 +1,5 @@
 ---
-- hosts: all
+- hosts: master
   gather_facts: yes
-  tasks:
-    - name: explore ansible_kernel
-      debug:
-        msg: "{{ hostvars[inventory_hostname] }}"
+  roles:
+    - etcd-tools

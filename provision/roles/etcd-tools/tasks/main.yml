@@ -1,0 +1,9 @@
+---
+# tasks file for etcd tools
+
+- name: Install etcd tools
+  shell: "{{ lookup('template', 'install-etcd-tools.sh') }}"
+  args:
+    executable: /bin/bash
+  register: ebgn
+  changed_when: "'etcd tools installed' in ebgn.stdout"

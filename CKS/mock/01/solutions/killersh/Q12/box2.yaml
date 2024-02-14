@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: box2
+  name: box2
+  namespace: sa-verify
+spec:
+  serviceAccountName: admin
+  containers:
+  - image: nginx:1.19.2
+    name: box2
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: apparmor
+  name: apparmor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apparmor
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/c1: localhost/containerized-nginx
+      labels:
+        app: apparmor
+    spec:
+      nodeSelector:
+        security: apparmor
+      containers:
+      - image: nginx:1.19.2
+        name: c1
+        resources: {}

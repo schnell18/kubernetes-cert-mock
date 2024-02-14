@@ -1,0 +1,75 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-pink
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: box1
+    app: web
+  name: box1
+  namespace: team-pink
+spec:
+  containers:
+  - image: nginx:1.19.2
+    name: box1
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: web
+  name: web
+  namespace: team-pink
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: web
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+  name: nginx
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: k8s.io/ingress-nginx
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: secure-ingress
+  namespace: team-pink
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  # required for nginx ingress controll 1.0.0+
+  ingressClassName: nginx
+  # tls:
+  # - hosts:
+  #     - secure-ingress.kube.vn
+  #   secretName: min-ingress-tls
+  rules:
+  - host: secure-ingress.kube.vn
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web
+            port:
+              number: 80

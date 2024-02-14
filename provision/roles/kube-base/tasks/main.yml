@@ -10,6 +10,8 @@
     packages:
     - gpg
     - parted
+    - strace
+    - jq
 
 - name: Remove swapfile from /etc/fstab
   mount:

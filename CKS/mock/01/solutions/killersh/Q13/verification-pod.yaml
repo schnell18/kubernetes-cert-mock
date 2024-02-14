@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: box1
+  name: box1
+  namespace: metadata-access
+spec:
+  containers:
+  - image: nginx:1.19.2
+    name: box1
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: box2
+    role: metadata-accessor
+  name: box2
+  namespace: metadata-access
+spec:
+  containers:
+  - image: nginx:1.19.2
+    name: box2
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always

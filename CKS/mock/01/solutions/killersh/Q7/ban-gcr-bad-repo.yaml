@@ -1,0 +1,15 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sDisallowedRepos
+metadata:
+  name: repo-must-not-be-k8s-gcr-io
+  namespace: secure
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    repos:
+      - "k8s.gcr.io/"
+      - "quay.io/"
+
